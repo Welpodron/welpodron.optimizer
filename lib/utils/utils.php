@@ -83,7 +83,9 @@ class Utils
             return;
         }
 
-        Loader::includeModule(SELF::DEFAULT_MODULE_ID);
+        if (!Loader::includeModule(SELF::DEFAULT_MODULE_ID)) {
+            return;
+        }
 
         if ($list->table_id == "tbl_fileman_admin") {
             foreach ($list->aRows as $row) {

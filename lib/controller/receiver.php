@@ -5,27 +5,20 @@ namespace Welpodron\Optimizer\Controller;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Error;
 use Bitrix\Main\Engine\CurrentUser;
-use Bitrix\Main\Loader;
 use Bitrix\Main\Application;
 use Bitrix\Main\IO\File;
-use Bitrix\Main\IO\Path;
 
-use Bitrix\Main\Page\Asset;
-use Bitrix\Main\Page\AssetMode;
-use CUtil;
 
 class Receiver extends Controller
 {
-    //! TODO: Добавить поддержку ленивых изображений на мутаторах
-    //! TODO: Добавить поддержку кэширования 
-    const DEFAULT_MODULE_ID = 'welpodron.mutator';
+    const DEFAULT_MODULE_ID = 'welpodron.optimizer';
     //! Данный метод обязателен если мы не хотим получить invalid_authentication https://qna.habr.com/q/1043030
     protected function getDefaultPreFilters()
     {
         return [];
     }
 
-    // Вызов из BX.ajax.runAction - welpodron:mutator.Receiver.load
+    // Вызов из BX.ajax.runAction - welpodron:optimizer.Receiver.load
     public function loadAction()
     {
         try {
@@ -65,6 +58,7 @@ class Receiver extends Controller
         }
     }
 
+    // Вызов из BX.ajax.runAction - welpodron:optimizer.Receiver.save
     public function saveAction()
     {
         try {
