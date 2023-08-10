@@ -13,6 +13,11 @@ class Utils
 
     private static function minifyHTML($buffer)
     {
+        //remove optional ending tags (see http://www.w3.org/TR/html5/syntax.html#syntax-tag-omission )
+        $remove = array(
+            '</option>', '</li>', '</dt>', '</dd>', '</tr>', '</th>', '</td>',
+        );
+
         //remove redundant (white-space) characters
         $replace = array(
             //remove tabs before and after HTML tags
@@ -30,18 +35,24 @@ class Utils
             //remove empty lines (between HTML tags); cannot remove just any line-end characters because in inline JS they can matter!
             '/\>[\r\n\t ]+\</s'    => '><',
             //remove "empty" lines containing only JS's block end character; join with next line (e.g. "}\n}\n</script>" --> "}}</script>"
-            '/}[\r\n\t ]+/s'  => '}',
-            '/}[\r\n\t ]+,[\r\n\t ]+/s'  => '},',
+            // '/}[\r\n\t ]+/s'  => '}',
+            // '/}[\r\n\t ]+,[\r\n\t ]+/s'  => '},',
             //remove new-line after JS's function or condition start; join with next line
             '/\)[\r\n\t ]?{[\r\n\t ]+/s'  => '){',
             '/,[\r\n\t ]?{[\r\n\t ]+/s'  => ',{',
             //remove new-line after JS's line end (only most obvious and safe cases)
             '/\),[\r\n\t ]+/s'  => '),',
             //remove quotes from HTML attributes that does not contain spaces; keep quotes around URLs!
-            '~([\r\n\t ])?([a-zA-Z0-9]+)="([a-zA-Z0-9_/\\-]+)"([\r\n\t ])?~s' => '$1$2=$3$4', //$1 and $4 insert first white-space character found before/after attribute
+            // '~([\r\n\t ])?([a-zA-Z0-9]+)="([a-zA-Z0-9_/\\-]+)"([\r\n\t ])?~s' => '$1$2=$3$4', //$1 and $4 insert first white-space character found before/after attribute
         );
 
-        $body = preg_replace(array_keys($replace), array_values($replace), $buffer);
+        $html = str_ireplace($remove, '', $buffer);
+
+        $html = preg_replace('/\s+type=["\'](?:text\/javascript|text\/css)["\']/', '', $html);
+
+        $html = preg_replace('/<(meta|link|img|br|input)([^>]+)?\/>/', '<$1$2>', $html);
+
+        $html = preg_replace(array_keys($replace), array_values($replace), $html);
 
         $search = array(
             '/(\n|^)(\x20+|\t)/',
@@ -65,16 +76,9 @@ class Utils
             "=$1"
         );
 
-        $body = preg_replace($search, $replace, $body);
+        $html = preg_replace($search, $replace, $html);
 
-        //remove optional ending tags (see http://www.w3.org/TR/html5/syntax.html#syntax-tag-omission )
-        $remove = array(
-            '</option>', '</li>', '</dt>', '</dd>', '</tr>', '</th>', '</td>'
-        );
-
-        $body = str_ireplace($remove, '', $body);
-
-        return $body;
+        return $html;
     }
 
     public static function OnAdminListDisplay(&$list)
@@ -83,9 +87,7 @@ class Utils
             return;
         }
 
-        if (!Loader::includeModule(SELF::DEFAULT_MODULE_ID)) {
-            return;
-        }
+        Loader::includeModule(SELF::DEFAULT_MODULE_ID);
 
         if ($list->table_id == "tbl_fileman_admin") {
             foreach ($list->aRows as $row) {
